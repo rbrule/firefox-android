@@ -18,6 +18,8 @@ object SearchStringValidator {
     private const val QUERY_PARAM = "1"
 
     fun isSearchStringValid(client: Client, searchString: String): Result {
+        val isExtentionSearchString = searchString.startsWith("moz-extension://") &&
+                                      searchString.endsWith("%s")
         val request = createRequest(searchString)
         val response = try {
             client.fetch(request)
@@ -30,7 +32,8 @@ object SearchStringValidator {
         // read the response stream to ensure the body is closed correctly. workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1603114
         response.close()
         return if (response.isSuccess ||
-            isTestQueryParamNotFound(response.status)
+            isTestQueryParamNotFound(response.status) ||
+            isExtentionSearchString
         ) {
             Result.Success
         } else {
